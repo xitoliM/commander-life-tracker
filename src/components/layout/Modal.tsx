@@ -4,9 +4,10 @@ type ModalProps = {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  panelClassName?: string;
 };
 
-export function Modal({ title, children, onClose }: ModalProps) {
+export function Modal({ title, children, onClose, panelClassName = "" }: ModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-end overflow-y-auto bg-slate-950/75 p-2 backdrop-blur-sm overscroll-contain md:items-center md:justify-center md:p-4"
@@ -14,7 +15,7 @@ export function Modal({ title, children, onClose }: ModalProps) {
       role="presentation"
     >
       <div
-        className="flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col rounded-[2rem] border border-white/10 bg-slate-900 shadow-2xl shadow-cyan-950/40 md:max-h-[calc(100dvh-2rem)]"
+        className={`flex max-h-[calc(100dvh-1rem)] w-full max-w-2xl flex-col rounded-[2rem] border border-white/10 bg-slate-900 shadow-2xl shadow-cyan-950/40 md:max-h-[calc(100dvh-2rem)] ${panelClassName}`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

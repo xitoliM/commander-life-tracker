@@ -7,6 +7,7 @@ import type { Game, Player } from "@/types/game";
 type PlayerDetailModalProps = {
   game: Game;
   player: Player;
+  upsideDown?: boolean;
   onClose: () => void;
   onChangeLife: (delta: number) => void;
   onChangeCounter: (
@@ -27,6 +28,7 @@ const DAMAGE_STEPS = [-5, -1, 1, 5];
 export function PlayerDetailModal({
   game,
   player,
+  upsideDown = false,
   onClose,
   onChangeLife,
   onChangeCounter,
@@ -37,7 +39,11 @@ export function PlayerDetailModal({
   const sources = game.players.filter((entry) => entry.id !== player.id);
 
   return (
-    <Modal title={player.name} onClose={onClose}>
+    <Modal
+      title={player.name}
+      onClose={onClose}
+      panelClassName={upsideDown ? "rotate-180 transform-gpu" : ""}
+    >
       <div className="space-y-5">
         <section className="rounded-[1.75rem] border border-white/8 bg-slate-950/45 p-4">
           <div className="mb-4 flex items-center justify-between gap-3">

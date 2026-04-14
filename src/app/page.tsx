@@ -40,6 +40,10 @@ export default function HomePage() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
+  const selectedPlayerIndex = tracker.game?.players.findIndex(
+    (player) => player.id === selectedPlayerId,
+  );
+
   const selectedPlayer = useMemo(
     () =>
       tracker.game?.players.find((player) => player.id === selectedPlayerId) ?? null,
@@ -150,6 +154,7 @@ export default function HomePage() {
           <PlayerDetailModal
             game={tracker.game}
             player={selectedPlayer}
+            upsideDown={tracker.game.players.length === 4 && (selectedPlayerIndex ?? -1) < 2}
             onClose={() => setSelectedPlayerId(null)}
             onChangeLife={(delta) => tracker.changeLife(selectedPlayer.id, delta)}
             onChangeCounter={(counterKey, delta) =>
