@@ -30,12 +30,7 @@ function getSeatClass(playerCount: number, index: number) {
     return "";
   }
 
-  const seatMap = [
-    "seat-top",
-    "seat-right",
-    "seat-bottom",
-    "seat-left",
-  ];
+  const seatMap = ["seat-top-left", "seat-top-right", "seat-bottom-left", "seat-bottom-right"];
 
   return seatMap[index] ?? "";
 }

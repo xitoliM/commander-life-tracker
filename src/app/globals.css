@@ -48,12 +48,8 @@ button {
 }
 
 .board-grid-4 {
-  grid-template-columns: minmax(170px, 0.82fr) minmax(240px, 1fr) minmax(170px, 0.82fr);
-  grid-template-rows: minmax(180px, 0.9fr) minmax(220px, 1fr) minmax(180px, 0.9fr);
-  grid-template-areas:
-    ". top ."
-    "left . right"
-    ". bottom .";
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
 }
 
 .board-grid-4 .player-tile {
@@ -61,35 +57,9 @@ button {
   height: 100%;
 }
 
-.board-grid-4 .seat-top {
-  grid-area: top;
+.board-grid-4 .seat-top-left,
+.board-grid-4 .seat-top-right {
   transform: rotate(180deg);
-}
-
-.board-grid-4 .seat-right {
-  grid-area: right;
-  transform: rotate(90deg);
-}
-
-.board-grid-4 .seat-bottom {
-  grid-area: bottom;
-}
-
-.board-grid-4 .seat-left {
-  grid-area: left;
-  transform: rotate(-90deg);
-}
-
-.board-grid-4 .seat-left,
-.board-grid-4 .seat-right {
-  align-self: stretch;
-  justify-self: center;
-  width: calc(100% + 3rem);
-}
-
-.board-grid-4 .seat-top,
-.board-grid-4 .seat-bottom {
-  width: 100%;
 }
 
 @media (orientation: portrait) and (max-width: 1024px) {
