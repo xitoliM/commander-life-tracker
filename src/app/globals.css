@@ -47,6 +47,14 @@ button {
   display: none;
 }
 
+.board-shell {
+  min-height: 100dvh;
+}
+
+.board-surface {
+  min-height: calc(100dvh - 1rem);
+}
+
 .board-grid-4 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: repeat(2, minmax(0, 1fr));

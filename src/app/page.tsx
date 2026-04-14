@@ -57,7 +57,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_28%),linear-gradient(180deg,_#0f172a_0%,_#020617_45%,_#020617_100%)] pb-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_28%),linear-gradient(180deg,_#0f172a_0%,_#020617_45%,_#020617_100%)]">
       <div className="portrait-blocker">
         <div className="mx-4 rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 text-center shadow-2xl shadow-slate-950/50">
           <p className="text-xs uppercase tracking-[0.34em] text-cyan-300/70">
@@ -74,7 +74,7 @@ export default function HomePage() {
       </div>
 
       <div className="landscape-only-mobile">
-        <div className="mx-auto max-w-7xl px-4 pt-4">
+        <div className="board-shell mx-auto max-w-[100rem] px-2 py-2">
           {!tracker.game && !showSetup ? (
             <section className="mx-auto mt-12 max-w-3xl rounded-[2.25rem] border border-white/10 bg-slate-900/80 p-6 text-center shadow-2xl shadow-slate-950/40">
               <p className="text-xs uppercase tracking-[0.38em] text-cyan-300/70">
@@ -116,7 +116,7 @@ export default function HomePage() {
                   tracker.game.players.length,
                 )} ${
                   tracker.game.players.length === 4 ? "board-grid-4" : ""
-                } min-h-[calc(100dvh-13rem)]`}
+                } board-surface min-h-[calc(100dvh-1rem)]`}
               >
                 {tracker.game.players.map((player, index) => {
                   return (
