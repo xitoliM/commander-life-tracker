@@ -4,8 +4,7 @@ import { useMemo, useState } from "react";
 
 import { PlayerDetailModal } from "@/components/game/PlayerDetailModal";
 import { PlayerTile } from "@/components/game/PlayerTile";
-import { StatusBar } from "@/components/game/StatusBar";
-import { Header } from "@/components/layout/Header";
+import { Modal } from "@/components/layout/Modal";
 import { PlayerSetupForm } from "@/components/setup/PlayerSetupForm";
 import { useGameState } from "@/hooks/useGameState";
 
@@ -39,6 +38,7 @@ export default function HomePage() {
   const tracker = useGameState();
   const [showSetup, setShowSetup] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
 
   const selectedPlayer = useMemo(
     () =>
@@ -74,18 +74,6 @@ export default function HomePage() {
       </div>
 
       <div className="landscape-only-mobile">
-        <Header
-          hasGame={tracker.hasActiveGame}
-          canUndo={tracker.canUndo}
-          onUndo={tracker.undoLastAction}
-          onNewGame={() => setShowSetup(true)}
-          onReset={() => {
-            tracker.resetGame();
-            setSelectedPlayerId(null);
-            setShowSetup(false);
-          }}
-        />
-
         <div className="mx-auto max-w-7xl px-4 pt-4">
           {!tracker.game && !showSetup ? (
             <section className="mx-auto mt-12 max-w-3xl rounded-[2.25rem] border border-white/10 bg-slate-900/80 p-6 text-center shadow-2xl shadow-slate-950/40">
@@ -115,22 +103,14 @@ export default function HomePage() {
               onStart={(input) => {
                 tracker.startGame(input);
                 setShowSetup(false);
+                setShowMenu(false);
                 setSelectedPlayerId(null);
               }}
             />
           ) : null}
 
-          {tracker.game ? (
-            <div className="space-y-5">
-              <StatusBar
-                players={tracker.game.players}
-                monarchPlayerId={tracker.game.monarchPlayerId}
-                initiativePlayerId={tracker.game.initiativePlayerId}
-                startingPlayerId={tracker.game.startingPlayerId}
-                onSetStatusOwner={tracker.setStatusOwner}
-                onRandomizeStartingPlayer={tracker.randomizeStartingPlayer}
-              />
-
+          {tracker.game && !showSetup ? (
+            <div className="relative">
               <section
                 className={`grid auto-rows-fr gap-4 ${getBoardLayout(
                   tracker.game.players.length,
@@ -152,6 +132,16 @@ export default function HomePage() {
                   );
                 })}
               </section>
+
+              <button
+                type="button"
+                onClick={() => setShowMenu(true)}
+                className={`game-menu-button rounded-full border border-white/12 bg-slate-900/92 px-5 py-4 text-sm font-semibold uppercase tracking-[0.26em] text-white shadow-2xl shadow-slate-950/60 transition hover:border-cyan-300/40 hover:text-cyan-100 ${
+                  tracker.game.players.length === 4 ? "game-menu-button-center" : ""
+                }`}
+              >
+                Menu
+              </button>
             </div>
           ) : null}
         </div>
@@ -171,6 +161,47 @@ export default function HomePage() {
             }
             onChangeCommanderDamage={tracker.changeCommanderDamage}
           />
+        ) : null}
+
+        {tracker.game && showMenu ? (
+          <Modal title="Game Menu" onClose={() => setShowMenu(false)}>
+            <div className="grid gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  tracker.undoLastAction();
+                  setShowMenu(false);
+                }}
+                disabled={!tracker.canUndo}
+                className="min-h-14 rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-left text-base font-semibold text-white transition hover:border-cyan-300/40 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Undo last action
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMenu(false);
+                  setShowSetup(true);
+                  setSelectedPlayerId(null);
+                }}
+                className="min-h-14 rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-left text-base font-semibold text-white transition hover:border-white/25"
+              >
+                New game
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  tracker.resetGame();
+                  setSelectedPlayerId(null);
+                  setShowSetup(false);
+                  setShowMenu(false);
+                }}
+                className="min-h-14 rounded-2xl bg-rose-500 px-4 py-3 text-left text-base font-semibold text-slate-950 transition hover:bg-rose-400"
+              >
+                Reset current game
+              </button>
+            </div>
+          </Modal>
         ) : null}
       </div>
     </main>
