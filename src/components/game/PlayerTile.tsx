@@ -19,7 +19,7 @@ export function PlayerTile({
     <button
       type="button"
       onClick={onOpen}
-      className={`relative flex min-h-40 flex-col justify-between overflow-hidden rounded-[2rem] border p-4 text-left shadow-2xl shadow-slate-950/30 transition active:scale-[0.99] ${
+      className={`player-tile relative flex min-h-40 flex-col justify-between overflow-hidden rounded-[2rem] border p-4 text-left shadow-2xl shadow-slate-950/30 transition active:scale-[0.99] ${
         player.eliminated
           ? "border-rose-400/40 bg-slate-900/70"
           : "border-white/10 bg-slate-900/85 hover:border-white/20"
@@ -47,7 +47,9 @@ export function PlayerTile({
               </span>
             ) : null}
           </div>
-          <h2 className="truncate text-lg font-semibold text-white">{player.name}</h2>
+          <h2 className="truncate text-base font-semibold uppercase tracking-[0.18em] text-white/90">
+            {player.name}
+          </h2>
         </div>
         <span
           className="mt-1 h-4 w-4 shrink-0 rounded-full border border-white/20"
@@ -57,11 +59,11 @@ export function PlayerTile({
 
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
-          <p className="text-[11px] uppercase tracking-[0.32em] text-slate-400">
+          <p className="text-[10px] uppercase tracking-[0.38em] text-slate-500">
             Life
           </p>
           <div
-            className={`mt-2 text-6xl font-semibold tracking-tight ${
+            className={`mt-2 text-7xl font-semibold tracking-tight sm:text-8xl ${
               player.eliminated ? "text-rose-300" : "text-white"
             }`}
           >
@@ -70,10 +72,8 @@ export function PlayerTile({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-xs text-slate-300">
-        <span>Poison {player.poison}</span>
-        <span>Tax {player.commanderTax}</span>
-        <span>Tap for actions</span>
+      <div className="text-center text-[11px] uppercase tracking-[0.28em] text-slate-500">
+        Tap for actions
       </div>
     </button>
   );

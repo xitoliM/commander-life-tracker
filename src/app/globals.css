@@ -42,3 +42,35 @@ button {
   background: rgba(103, 232, 249, 0.35);
   color: white;
 }
+
+.portrait-blocker {
+  display: none;
+}
+
+.board-grid-4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.board-grid-4 .player-tile {
+  min-height: 0;
+  height: 100%;
+}
+
+@media (orientation: portrait) and (max-width: 1024px) {
+  .portrait-blocker {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(circle at top, rgba(34, 211, 238, 0.2), transparent 30%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 1));
+  }
+
+  .landscape-only-mobile {
+    display: none;
+  }
+}

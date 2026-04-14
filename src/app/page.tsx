@@ -14,11 +14,15 @@ function getBoardLayout(playerCount: number) {
     return "grid-cols-1 sm:grid-cols-2";
   }
 
+  if (playerCount === 4) {
+    return "grid-cols-2";
+  }
+
   if (playerCount <= 4) {
     return "grid-cols-2";
   }
 
-  return "grid-cols-2 xl:grid-cols-3";
+  return "grid-cols-2 2xl:grid-cols-3";
 }
 
 export default function HomePage() {
@@ -44,6 +48,22 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_28%),linear-gradient(180deg,_#0f172a_0%,_#020617_45%,_#020617_100%)] pb-10">
+      <div className="portrait-blocker">
+        <div className="mx-4 rounded-[2rem] border border-white/10 bg-slate-900/90 p-6 text-center shadow-2xl shadow-slate-950/50">
+          <p className="text-xs uppercase tracking-[0.34em] text-cyan-300/70">
+            Landscape only
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold text-white">
+            Rotate your phone
+          </h2>
+          <p className="mt-3 text-sm text-slate-300">
+            This table layout is optimized for landscape play so every player panel
+            stays large and easy to tap.
+          </p>
+        </div>
+      </div>
+
+      <div className="landscape-only-mobile">
       <Header
         hasGame={tracker.hasActiveGame}
         canUndo={tracker.canUndo}
@@ -56,7 +76,7 @@ export default function HomePage() {
         }}
       />
 
-      <div className="mx-auto max-w-6xl px-4 pt-6">
+      <div className="mx-auto max-w-7xl px-4 pt-4">
         {!tracker.game && !showSetup ? (
           <section className="mx-auto mt-12 max-w-3xl rounded-[2.25rem] border border-white/10 bg-slate-900/80 p-6 text-center shadow-2xl shadow-slate-950/40">
             <p className="text-xs uppercase tracking-[0.38em] text-cyan-300/70">
@@ -104,7 +124,9 @@ export default function HomePage() {
             <section
               className={`grid auto-rows-fr gap-4 ${getBoardLayout(
                 tracker.game.players.length,
-              )} min-h-[calc(100vh-16rem)]`}
+              )} ${
+                tracker.game.players.length === 4 ? "board-grid-4" : ""
+              } min-h-[calc(100dvh-13rem)]`}
             >
               {tracker.game.players.map((player) => {
                 return (
@@ -139,6 +161,7 @@ export default function HomePage() {
           onChangeCommanderDamage={tracker.changeCommanderDamage}
         />
       ) : null}
+      </div>
     </main>
   );
 }
