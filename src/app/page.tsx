@@ -25,6 +25,21 @@ function getBoardLayout(playerCount: number) {
   return "grid-cols-2 2xl:grid-cols-3";
 }
 
+function getSeatClass(playerCount: number, index: number) {
+  if (playerCount !== 4) {
+    return "";
+  }
+
+  const seatMap = [
+    "seat-top",
+    "seat-right",
+    "seat-bottom",
+    "seat-left",
+  ];
+
+  return seatMap[index] ?? "";
+}
+
 export default function HomePage() {
   const tracker = useGameState();
   const [showSetup, setShowSetup] = useState(false);
@@ -64,103 +79,104 @@ export default function HomePage() {
       </div>
 
       <div className="landscape-only-mobile">
-      <Header
-        hasGame={tracker.hasActiveGame}
-        canUndo={tracker.canUndo}
-        onUndo={tracker.undoLastAction}
-        onNewGame={() => setShowSetup(true)}
-        onReset={() => {
-          tracker.resetGame();
-          setSelectedPlayerId(null);
-          setShowSetup(false);
-        }}
-      />
+        <Header
+          hasGame={tracker.hasActiveGame}
+          canUndo={tracker.canUndo}
+          onUndo={tracker.undoLastAction}
+          onNewGame={() => setShowSetup(true)}
+          onReset={() => {
+            tracker.resetGame();
+            setSelectedPlayerId(null);
+            setShowSetup(false);
+          }}
+        />
 
-      <div className="mx-auto max-w-7xl px-4 pt-4">
-        {!tracker.game && !showSetup ? (
-          <section className="mx-auto mt-12 max-w-3xl rounded-[2.25rem] border border-white/10 bg-slate-900/80 p-6 text-center shadow-2xl shadow-slate-950/40">
-            <p className="text-xs uppercase tracking-[0.38em] text-cyan-300/70">
-              Static Next.js app
-            </p>
-            <h2 className="mt-3 text-4xl font-semibold text-white">
-              Fast commander tracking for the whole table
-            </h2>
-            <p className="mt-4 text-balance text-base text-slate-300">
-              Track life, commander damage, poison, tax, monarch and initiative.
-              Everything stays local in the browser and survives a reload.
-            </p>
-            <button
-              type="button"
-              onClick={() => setShowSetup(true)}
-              className="mt-8 rounded-full bg-cyan-300 px-6 py-4 text-base font-semibold text-slate-950 transition hover:bg-cyan-200"
-            >
-              New Game
-            </button>
-          </section>
-        ) : null}
+        <div className="mx-auto max-w-7xl px-4 pt-4">
+          {!tracker.game && !showSetup ? (
+            <section className="mx-auto mt-12 max-w-3xl rounded-[2.25rem] border border-white/10 bg-slate-900/80 p-6 text-center shadow-2xl shadow-slate-950/40">
+              <p className="text-xs uppercase tracking-[0.38em] text-cyan-300/70">
+                Static Next.js app
+              </p>
+              <h2 className="mt-3 text-4xl font-semibold text-white">
+                Fast commander tracking for the whole table
+              </h2>
+              <p className="mt-4 text-balance text-base text-slate-300">
+                Track life, commander damage, poison, tax, monarch and initiative.
+                Everything stays local in the browser and survives a reload.
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowSetup(true)}
+                className="mt-8 rounded-full bg-cyan-300 px-6 py-4 text-base font-semibold text-slate-950 transition hover:bg-cyan-200"
+              >
+                New Game
+              </button>
+            </section>
+          ) : null}
 
-        {showSetup ? (
-          <PlayerSetupForm
-            onCancel={() => setShowSetup(false)}
-            onStart={(input) => {
-              tracker.startGame(input);
-              setShowSetup(false);
-              setSelectedPlayerId(null);
-            }}
+          {showSetup ? (
+            <PlayerSetupForm
+              onCancel={() => setShowSetup(false)}
+              onStart={(input) => {
+                tracker.startGame(input);
+                setShowSetup(false);
+                setSelectedPlayerId(null);
+              }}
+            />
+          ) : null}
+
+          {tracker.game ? (
+            <div className="space-y-5">
+              <StatusBar
+                players={tracker.game.players}
+                monarchPlayerId={tracker.game.monarchPlayerId}
+                initiativePlayerId={tracker.game.initiativePlayerId}
+                startingPlayerId={tracker.game.startingPlayerId}
+                onSetStatusOwner={tracker.setStatusOwner}
+                onRandomizeStartingPlayer={tracker.randomizeStartingPlayer}
+              />
+
+              <section
+                className={`grid auto-rows-fr gap-4 ${getBoardLayout(
+                  tracker.game.players.length,
+                )} ${
+                  tracker.game.players.length === 4 ? "board-grid-4" : ""
+                } min-h-[calc(100dvh-13rem)]`}
+              >
+                {tracker.game.players.map((player, index) => {
+                  return (
+                    <PlayerTile
+                      key={player.id}
+                      className={getSeatClass(tracker.game!.players.length, index)}
+                      player={player}
+                      isMonarch={tracker.game?.monarchPlayerId === player.id}
+                      isInitiative={tracker.game?.initiativePlayerId === player.id}
+                      isStartingPlayer={tracker.game?.startingPlayerId === player.id}
+                      onOpen={() => setSelectedPlayerId(player.id)}
+                    />
+                  );
+                })}
+              </section>
+            </div>
+          ) : null}
+        </div>
+
+        {tracker.game && selectedPlayer ? (
+          <PlayerDetailModal
+            game={tracker.game}
+            player={selectedPlayer}
+            onClose={() => setSelectedPlayerId(null)}
+            onChangeLife={(delta) => tracker.changeLife(selectedPlayer.id, delta)}
+            onChangeCounter={(counterKey, delta) =>
+              tracker.changeCounter(selectedPlayer.id, counterKey, delta)
+            }
+            onAddExtraCounter={(name) => tracker.addExtraCounter(selectedPlayer.id, name)}
+            onChangeExtraCounter={(extraCounterId, delta) =>
+              tracker.changeExtraCounter(selectedPlayer.id, extraCounterId, delta)
+            }
+            onChangeCommanderDamage={tracker.changeCommanderDamage}
           />
         ) : null}
-
-        {tracker.game ? (
-          <div className="space-y-5">
-            <StatusBar
-              players={tracker.game.players}
-              monarchPlayerId={tracker.game.monarchPlayerId}
-              initiativePlayerId={tracker.game.initiativePlayerId}
-              startingPlayerId={tracker.game.startingPlayerId}
-              onSetStatusOwner={tracker.setStatusOwner}
-              onRandomizeStartingPlayer={tracker.randomizeStartingPlayer}
-            />
-
-            <section
-              className={`grid auto-rows-fr gap-4 ${getBoardLayout(
-                tracker.game.players.length,
-              )} ${
-                tracker.game.players.length === 4 ? "board-grid-4" : ""
-              } min-h-[calc(100dvh-13rem)]`}
-            >
-              {tracker.game.players.map((player) => {
-                return (
-                  <PlayerTile
-                    key={player.id}
-                    player={player}
-                    isMonarch={tracker.game?.monarchPlayerId === player.id}
-                    isInitiative={tracker.game?.initiativePlayerId === player.id}
-                    isStartingPlayer={tracker.game?.startingPlayerId === player.id}
-                    onOpen={() => setSelectedPlayerId(player.id)}
-                  />
-                );
-              })}
-            </section>
-          </div>
-        ) : null}
-      </div>
-
-      {tracker.game && selectedPlayer ? (
-        <PlayerDetailModal
-          game={tracker.game}
-          player={selectedPlayer}
-          onClose={() => setSelectedPlayerId(null)}
-          onChangeLife={(delta) => tracker.changeLife(selectedPlayer.id, delta)}
-          onChangeCounter={(counterKey, delta) =>
-            tracker.changeCounter(selectedPlayer.id, counterKey, delta)
-          }
-          onAddExtraCounter={(name) => tracker.addExtraCounter(selectedPlayer.id, name)}
-          onChangeExtraCounter={(extraCounterId, delta) =>
-            tracker.changeExtraCounter(selectedPlayer.id, extraCounterId, delta)
-          }
-          onChangeCommanderDamage={tracker.changeCommanderDamage}
-        />
-      ) : null}
       </div>
     </main>
   );

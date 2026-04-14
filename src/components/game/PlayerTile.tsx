@@ -6,6 +6,7 @@ type PlayerTileProps = {
   isInitiative: boolean;
   isStartingPlayer: boolean;
   onOpen: () => void;
+  className?: string;
 };
 
 export function PlayerTile({
@@ -14,12 +15,13 @@ export function PlayerTile({
   isInitiative,
   isStartingPlayer,
   onOpen,
+  className = "",
 }: PlayerTileProps) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      className={`player-tile relative flex min-h-40 flex-col justify-between overflow-hidden rounded-[2rem] border p-4 text-left shadow-2xl shadow-slate-950/30 transition active:scale-[0.99] ${
+      className={`player-tile relative flex min-h-40 flex-col justify-between overflow-hidden rounded-[2rem] border p-4 text-left shadow-2xl shadow-slate-950/30 transition active:scale-[0.99] ${className} ${
         player.eliminated
           ? "border-rose-400/40 bg-slate-900/70"
           : "border-white/10 bg-slate-900/85 hover:border-white/20"

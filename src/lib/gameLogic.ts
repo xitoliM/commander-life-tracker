@@ -42,7 +42,32 @@ function updateHistory(game: Game, entry: HistoryEntry): Game {
 function normalizePlayer(player: Player): Player {
   return {
     ...player,
-    eliminated: player.life <= 0,
+    eliminated: player.eliminated,
+  };
+}
+
+function isPlayerEliminated(game: Game, playerId: string) {
+  const player = game.players.find((entry) => entry.id === playerId);
+  if (!player) {
+    return false;
+  }
+
+  if (player.life <= 0 || player.poison >= 10) {
+    return true;
+  }
+
+  return game.commanderDamage.some(
+    (entry) => entry.targetPlayerId === playerId && entry.amount >= 21,
+  );
+}
+
+function refreshEliminations(game: Game): Game {
+  return {
+    ...game,
+    players: game.players.map((player) => ({
+      ...player,
+      eliminated: isPlayerEliminated(game, player.id),
+    })),
   };
 }
 
@@ -94,27 +119,25 @@ export function getCommanderDamageAmount(
 }
 
 export function createGame(input: CreateGameInput): Game {
-  const players = input.players.slice(0, input.playerCount).map((player, index) =>
-    normalizePlayer({
-      id: createId("player"),
-      name: player.name.trim() || `Player ${index + 1}`,
-      color: player.color,
-      life: input.startingLife,
-      poison: 0,
-      commanderTax: 0,
-      energy: 0,
-      experience: 0,
-      extraCounters: [],
-      eliminated: false,
-    }),
-  );
+  const players = input.players.slice(0, input.playerCount).map((player, index) => ({
+    id: createId("player"),
+    name: player.name.trim() || `Player ${index + 1}`,
+    color: player.color,
+    life: input.startingLife,
+    poison: 0,
+    commanderTax: 0,
+    energy: 0,
+    experience: 0,
+    extraCounters: [],
+    eliminated: false,
+  }));
 
   const randomPlayer =
     input.randomizeStartingPlayer && players.length > 0
       ? players[Math.floor(Math.random() * players.length)]?.id
       : undefined;
 
-  return {
+  return refreshEliminations({
     id: createId("game"),
     players,
     startingLife: input.startingLife,
@@ -123,7 +146,7 @@ export function createGame(input: CreateGameInput): Game {
     startingPlayerId: randomPlayer,
     commanderDamage: [],
     history: [],
-  };
+  });
 }
 
 export function updateLife(game: Game, playerId: string, delta: number): Game {
@@ -133,17 +156,17 @@ export function updateLife(game: Game, playerId: string, delta: number): Game {
   }
 
   const nextLife = currentPlayer.life + delta;
-  const nextGame = {
+  const nextGame = refreshEliminations({
     ...game,
     players: game.players.map((player) =>
       player.id === playerId
-        ? normalizePlayer({
+        ? {
             ...player,
             life: nextLife,
-          })
+          }
         : player,
     ),
-  };
+  });
 
   return updateHistory(nextGame, {
     id: createId("history"),
@@ -170,12 +193,12 @@ export function updateCounter(
 
   const previousValue = currentPlayer[counterKey];
   const nextValue = clampToZero(previousValue + delta);
-  const nextGame = {
+  const nextGame = refreshEliminations({
     ...game,
     players: game.players.map((player) =>
       player.id === playerId ? setPlayerValue(player, counterKey, nextValue) : player,
     ),
-  };
+  });
 
   return updateHistory(nextGame, {
     id: createId("history"),
@@ -232,7 +255,7 @@ export function updateExtraCounter(
 
   const previousValue = currentCounter.value;
   const nextValue = clampToZero(previousValue + delta);
-  const nextGame = {
+  const nextGame = refreshEliminations({
     ...game,
     players: game.players.map((player) =>
       player.id === playerId
@@ -246,7 +269,7 @@ export function updateExtraCounter(
           }
         : player,
     ),
-  };
+  });
 
   return updateHistory(nextGame, {
     id: createId("history"),
@@ -286,14 +309,14 @@ export function updateCommanderDamage(
   const previousLife = targetPlayer.life;
   const appliedDelta = nextAmount - previousAmount;
   const nextLife = previousLife - appliedDelta;
-  const nextGame = {
+  const nextGame = refreshEliminations({
     ...game,
     players: game.players.map((player) =>
       player.id === targetPlayerId
-        ? normalizePlayer({
+        ? {
             ...player,
             life: nextLife,
-          })
+          }
         : player,
     ),
     commanderDamage: replaceCommanderDamage(
@@ -302,7 +325,7 @@ export function updateCommanderDamage(
       targetPlayerId,
       nextAmount,
     ),
-  };
+  });
 
   return updateHistory(nextGame, {
     id: createId("history"),
@@ -368,18 +391,18 @@ export function undoLastAction(game: Game): Game {
     const playerId = String(lastEntry.payload.playerId);
     const previousLife = Number(lastEntry.payload.previousLife);
 
-    return {
+    return refreshEliminations({
       ...game,
       history: remainingHistory,
       players: game.players.map((player) =>
         player.id === playerId
-          ? normalizePlayer({
+          ? {
               ...player,
               life: previousLife,
-            })
+            }
           : player,
       ),
-    };
+    });
   }
 
   if (lastEntry.type === "counter") {
@@ -389,7 +412,7 @@ export function undoLastAction(game: Game): Game {
 
     if (counterKey === "extra") {
       const extraCounterId = String(lastEntry.payload.extraCounterId);
-      return {
+      return refreshEliminations({
         ...game,
         history: remainingHistory,
         players: game.players.map((player) =>
@@ -404,10 +427,10 @@ export function undoLastAction(game: Game): Game {
               }
             : player,
         ),
-      };
+      });
     }
 
-    return {
+    return refreshEliminations({
       ...game,
       history: remainingHistory,
       players: game.players.map((player) =>
@@ -415,7 +438,7 @@ export function undoLastAction(game: Game): Game {
           ? setPlayerValue(player, counterKey as BuiltInCounterKey, previousValue)
           : player,
       ),
-    };
+    });
   }
 
   if (lastEntry.type === "commanderDamage") {
@@ -424,15 +447,15 @@ export function undoLastAction(game: Game): Game {
     const previousAmount = Number(lastEntry.payload.previousAmount);
     const previousLife = Number(lastEntry.payload.previousLife);
 
-    return {
+    return refreshEliminations({
       ...game,
       history: remainingHistory,
       players: game.players.map((player) =>
         player.id === targetPlayerId
-          ? normalizePlayer({
+          ? {
               ...player,
               life: previousLife,
-            })
+            }
           : player,
       ),
       commanderDamage: replaceCommanderDamage(
@@ -441,7 +464,7 @@ export function undoLastAction(game: Game): Game {
         targetPlayerId,
         previousAmount,
       ),
-    };
+    });
   }
 
   if (lastEntry.type === "status") {
