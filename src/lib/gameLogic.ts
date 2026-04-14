@@ -278,8 +278,24 @@ export function updateCommanderDamage(
     targetPlayerId,
   );
   const nextAmount = clampToZero(previousAmount + delta);
+  const targetPlayer = game.players.find((player) => player.id === targetPlayerId);
+  if (!targetPlayer) {
+    return game;
+  }
+
+  const previousLife = targetPlayer.life;
+  const appliedDelta = nextAmount - previousAmount;
+  const nextLife = previousLife - appliedDelta;
   const nextGame = {
     ...game,
+    players: game.players.map((player) =>
+      player.id === targetPlayerId
+        ? normalizePlayer({
+            ...player,
+            life: nextLife,
+          })
+        : player,
+    ),
     commanderDamage: replaceCommanderDamage(
       game.commanderDamage,
       sourcePlayerId,
@@ -296,6 +312,8 @@ export function updateCommanderDamage(
       targetPlayerId,
       previousAmount,
       nextAmount,
+      previousLife,
+      nextLife,
     },
     timestamp: Date.now(),
   });
@@ -404,10 +422,19 @@ export function undoLastAction(game: Game): Game {
     const sourcePlayerId = String(lastEntry.payload.sourcePlayerId);
     const targetPlayerId = String(lastEntry.payload.targetPlayerId);
     const previousAmount = Number(lastEntry.payload.previousAmount);
+    const previousLife = Number(lastEntry.payload.previousLife);
 
     return {
       ...game,
       history: remainingHistory,
+      players: game.players.map((player) =>
+        player.id === targetPlayerId
+          ? normalizePlayer({
+              ...player,
+              life: previousLife,
+            })
+          : player,
+      ),
       commanderDamage: replaceCommanderDamage(
         game.commanderDamage,
         sourcePlayerId,

@@ -2,22 +2,34 @@
 
 import { useMemo, useState } from "react";
 
-import { CommanderDamageModal } from "@/components/game/CommanderDamageModal";
-import { PlayerCard } from "@/components/game/PlayerCard";
+import { PlayerDetailModal } from "@/components/game/PlayerDetailModal";
+import { PlayerTile } from "@/components/game/PlayerTile";
 import { StatusBar } from "@/components/game/StatusBar";
 import { Header } from "@/components/layout/Header";
 import { PlayerSetupForm } from "@/components/setup/PlayerSetupForm";
 import { useGameState } from "@/hooks/useGameState";
 
+function getBoardLayout(playerCount: number) {
+  if (playerCount <= 2) {
+    return "grid-cols-1 sm:grid-cols-2";
+  }
+
+  if (playerCount <= 4) {
+    return "grid-cols-2";
+  }
+
+  return "grid-cols-2 xl:grid-cols-3";
+}
+
 export default function HomePage() {
   const tracker = useGameState();
   const [showSetup, setShowSetup] = useState(false);
-  const [commanderTargetId, setCommanderTargetId] = useState<string | null>(null);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
-  const commanderTarget = useMemo(
+  const selectedPlayer = useMemo(
     () =>
-      tracker.game?.players.find((player) => player.id === commanderTargetId) ?? null,
-    [commanderTargetId, tracker.game?.players],
+      tracker.game?.players.find((player) => player.id === selectedPlayerId) ?? null,
+    [selectedPlayerId, tracker.game?.players],
   );
 
   if (!tracker.hydrated) {
@@ -39,7 +51,7 @@ export default function HomePage() {
         onNewGame={() => setShowSetup(true)}
         onReset={() => {
           tracker.resetGame();
-          setCommanderTargetId(null);
+          setSelectedPlayerId(null);
           setShowSetup(false);
         }}
       />
@@ -73,7 +85,7 @@ export default function HomePage() {
             onStart={(input) => {
               tracker.startGame(input);
               setShowSetup(false);
-              setCommanderTargetId(null);
+              setSelectedPlayerId(null);
             }}
           />
         ) : null}
@@ -89,31 +101,20 @@ export default function HomePage() {
               onRandomizeStartingPlayer={tracker.randomizeStartingPlayer}
             />
 
-            <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            <section
+              className={`grid auto-rows-fr gap-4 ${getBoardLayout(
+                tracker.game.players.length,
+              )} min-h-[calc(100vh-16rem)]`}
+            >
               {tracker.game.players.map((player) => {
-                const incomingCommanderDamage = tracker.game!.commanderDamage
-                  .filter((entry) => entry.targetPlayerId === player.id)
-                  .reduce((total, entry) => total + entry.amount, 0);
-
                 return (
-                  <PlayerCard
+                  <PlayerTile
                     key={player.id}
                     player={player}
-                    incomingCommanderDamage={incomingCommanderDamage}
                     isMonarch={tracker.game?.monarchPlayerId === player.id}
                     isInitiative={tracker.game?.initiativePlayerId === player.id}
                     isStartingPlayer={tracker.game?.startingPlayerId === player.id}
-                    onChangeLife={(delta) => tracker.changeLife(player.id, delta)}
-                    onChangeCounter={(counterKey, delta) =>
-                      tracker.changeCounter(player.id, counterKey, delta)
-                    }
-                    onAddExtraCounter={(name) =>
-                      tracker.addExtraCounter(player.id, name)
-                    }
-                    onChangeExtraCounter={(extraCounterId, delta) =>
-                      tracker.changeExtraCounter(player.id, extraCounterId, delta)
-                    }
-                    onOpenCommanderDamage={() => setCommanderTargetId(player.id)}
+                    onOpen={() => setSelectedPlayerId(player.id)}
                   />
                 );
               })}
@@ -122,11 +123,19 @@ export default function HomePage() {
         ) : null}
       </div>
 
-      {tracker.game && commanderTarget ? (
-        <CommanderDamageModal
+      {tracker.game && selectedPlayer ? (
+        <PlayerDetailModal
           game={tracker.game}
-          targetPlayer={commanderTarget}
-          onClose={() => setCommanderTargetId(null)}
+          player={selectedPlayer}
+          onClose={() => setSelectedPlayerId(null)}
+          onChangeLife={(delta) => tracker.changeLife(selectedPlayer.id, delta)}
+          onChangeCounter={(counterKey, delta) =>
+            tracker.changeCounter(selectedPlayer.id, counterKey, delta)
+          }
+          onAddExtraCounter={(name) => tracker.addExtraCounter(selectedPlayer.id, name)}
+          onChangeExtraCounter={(extraCounterId, delta) =>
+            tracker.changeExtraCounter(selectedPlayer.id, extraCounterId, delta)
+          }
           onChangeCommanderDamage={tracker.changeCommanderDamage}
         />
       ) : null}
