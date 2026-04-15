@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 import type { Player } from "@/types/game";
 
 type PlayerTileProps = {
@@ -19,6 +21,57 @@ export function PlayerTile({
   onChangeLife,
   className = "",
 }: PlayerTileProps) {
+  const holdTimeoutRef = useRef<number | null>(null);
+  const holdIntervalRef = useRef<number | null>(null);
+  const flashTimeoutRef = useRef<number | null>(null);
+  const [lifeFlash, setLifeFlash] = useState<"+1" | "-1" | null>(null);
+
+  function clearHoldTimers() {
+    if (holdTimeoutRef.current !== null) {
+      window.clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = null;
+    }
+
+    if (holdIntervalRef.current !== null) {
+      window.clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+  }
+
+  function showLifeFlash(delta: number) {
+    if (flashTimeoutRef.current !== null) {
+      window.clearTimeout(flashTimeoutRef.current);
+    }
+
+    setLifeFlash(delta > 0 ? "+1" : "-1");
+    flashTimeoutRef.current = window.setTimeout(() => {
+      setLifeFlash(null);
+      flashTimeoutRef.current = null;
+    }, 550);
+  }
+
+  function startLifePress(delta: number) {
+    onChangeLife(delta);
+    showLifeFlash(delta);
+    clearHoldTimers();
+
+    holdTimeoutRef.current = window.setTimeout(() => {
+      holdIntervalRef.current = window.setInterval(() => {
+        onChangeLife(delta);
+        showLifeFlash(delta);
+      }, 333);
+    }, 350);
+  }
+
+  useEffect(() => {
+    return () => {
+      clearHoldTimers();
+      if (flashTimeoutRef.current !== null) {
+        window.clearTimeout(flashTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <article
       className={`player-tile relative flex min-h-40 flex-col justify-between overflow-hidden rounded-[2rem] border p-4 text-left shadow-2xl shadow-slate-950/30 transition active:scale-[0.99] ${className} ${
@@ -30,6 +83,16 @@ export function PlayerTile({
         backgroundImage: `radial-gradient(circle at top right, ${player.color}44 0%, transparent 34%), linear-gradient(160deg, rgba(15, 23, 42, 0.88) 0%, rgba(2, 6, 23, 0.98) 72%)`,
       }}
     >
+      {lifeFlash ? (
+        <div
+          className={`pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-5xl font-bold tracking-tight animate-[life-flash_550ms_ease-out_forwards] ${
+            lifeFlash === "+1" ? "text-emerald-300" : "text-rose-300"
+          }`}
+        >
+          {lifeFlash}
+        </div>
+      ) : null}
+
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap gap-2">
@@ -62,8 +125,11 @@ export function PlayerTile({
       <div className="grid flex-1 grid-cols-[minmax(5.5rem,0.85fr)_1fr_minmax(5.5rem,0.85fr)] items-center gap-3">
         <button
           type="button"
-          onPointerDown={() => onChangeLife(1)}
-          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-6xl font-semibold leading-none text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18 sm:text-7xl"
+          onPointerDown={() => startLifePress(1)}
+          onPointerUp={clearHoldTimers}
+          onPointerCancel={clearHoldTimers}
+          onPointerLeave={clearHoldTimers}
+          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-7xl font-bold leading-none text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18 sm:text-8xl"
           aria-label={`Increase ${player.name} life by 1`}
         >
           +
@@ -91,8 +157,11 @@ export function PlayerTile({
 
         <button
           type="button"
-          onPointerDown={() => onChangeLife(-1)}
-          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-6xl font-semibold leading-none text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18 sm:text-7xl"
+          onPointerDown={() => startLifePress(-1)}
+          onPointerUp={clearHoldTimers}
+          onPointerCancel={clearHoldTimers}
+          onPointerLeave={clearHoldTimers}
+          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-7xl font-bold leading-none text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18 sm:text-8xl"
           aria-label={`Decrease ${player.name} life by 1`}
         >
           -

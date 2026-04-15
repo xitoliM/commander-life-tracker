@@ -43,6 +43,23 @@ button {
   color: white;
 }
 
+@keyframes life-flash {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translate(-50%, -58%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -82%) scale(1.04);
+  }
+}
+
 .portrait-blocker {
   display: none;
 }
