@@ -6,6 +6,7 @@ type PlayerTileProps = {
   isInitiative: boolean;
   isStartingPlayer: boolean;
   onOpen: () => void;
+  onChangeLife: (delta: number) => void;
   className?: string;
 };
 
@@ -15,12 +16,11 @@ export function PlayerTile({
   isInitiative,
   isStartingPlayer,
   onOpen,
+  onChangeLife,
   className = "",
 }: PlayerTileProps) {
   return (
-    <button
-      type="button"
-      onClick={onOpen}
+    <article
       className={`player-tile relative flex min-h-40 flex-col justify-between overflow-hidden rounded-[2rem] border p-4 text-left shadow-2xl shadow-slate-950/30 transition active:scale-[0.99] ${className} ${
         player.eliminated
           ? "border-rose-400/40 bg-slate-900/70"
@@ -59,8 +59,23 @@ export function PlayerTile({
         />
       </div>
 
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
+      <div className="grid flex-1 grid-cols-[minmax(4.25rem,0.7fr)_1fr_minmax(4.25rem,0.7fr)] items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onChangeLife(1)}
+          className="flex h-full min-h-24 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-4xl font-semibold text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18"
+          aria-label={`Increase ${player.name} life by 1`}
+        >
+          +
+        </button>
+
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex h-full min-h-24 items-center justify-center rounded-[1.5rem] px-2 text-center transition hover:bg-white/5"
+          aria-label={`Open actions for ${player.name}`}
+        >
+          <div className="text-center">
           <p className="text-[10px] uppercase tracking-[0.38em] text-slate-500">
             Life
           </p>
@@ -71,12 +86,22 @@ export function PlayerTile({
           >
             {player.life}
           </div>
-        </div>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onChangeLife(-1)}
+          className="flex h-full min-h-24 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-4xl font-semibold text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18"
+          aria-label={`Decrease ${player.name} life by 1`}
+        >
+          -
+        </button>
       </div>
 
       <div className="text-center text-[11px] uppercase tracking-[0.28em] text-slate-500">
         Tap for actions
       </div>
-    </button>
+    </article>
   );
 }

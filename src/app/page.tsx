@@ -131,6 +131,7 @@ export default function HomePage() {
                       isMonarch={tracker.game?.monarchPlayerId === player.id}
                       isInitiative={tracker.game?.initiativePlayerId === player.id}
                       isStartingPlayer={tracker.game?.startingPlayerId === player.id}
+                      onChangeLife={(delta) => tracker.changeLife(player.id, delta)}
                       onOpen={() => setSelectedPlayerId(player.id)}
                     />
                   );
