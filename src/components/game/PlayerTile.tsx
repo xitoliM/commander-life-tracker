@@ -24,7 +24,7 @@ export function PlayerTile({
   const holdTimeoutRef = useRef<number | null>(null);
   const holdIntervalRef = useRef<number | null>(null);
   const flashTimeoutRef = useRef<number | null>(null);
-  const [lifeFlash, setLifeFlash] = useState<"+1" | "-1" | null>(null);
+  const [lifeFlash, setLifeFlash] = useState(0);
 
   function clearHoldTimers() {
     if (holdTimeoutRef.current !== null) {
@@ -43,11 +43,22 @@ export function PlayerTile({
       window.clearTimeout(flashTimeoutRef.current);
     }
 
-    setLifeFlash(delta > 0 ? "+1" : "-1");
+    setLifeFlash((current) => {
+      if (current === 0) {
+        return delta;
+      }
+
+      if ((current > 0 && delta > 0) || (current < 0 && delta < 0)) {
+        return current + delta;
+      }
+
+      return delta;
+    });
+
     flashTimeoutRef.current = window.setTimeout(() => {
-      setLifeFlash(null);
+      setLifeFlash(0);
       flashTimeoutRef.current = null;
-    }, 550);
+    }, 650);
   }
 
   function startLifePress(delta: number) {
@@ -83,13 +94,13 @@ export function PlayerTile({
         backgroundImage: `radial-gradient(circle at top right, ${player.color}44 0%, transparent 34%), linear-gradient(160deg, rgba(15, 23, 42, 0.88) 0%, rgba(2, 6, 23, 0.98) 72%)`,
       }}
     >
-      {lifeFlash ? (
+      {lifeFlash !== 0 ? (
         <div
-          className={`pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-5xl font-bold tracking-tight animate-[life-flash_550ms_ease-out_forwards] ${
-            lifeFlash === "+1" ? "text-emerald-300" : "text-rose-300"
+          className={`pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-5xl font-bold tracking-tight animate-[life-flash_650ms_ease-out_forwards] ${
+            lifeFlash > 0 ? "text-emerald-300" : "text-rose-300"
           }`}
         >
-          {lifeFlash}
+          {lifeFlash > 0 ? `+${lifeFlash}` : lifeFlash}
         </div>
       ) : null}
 
@@ -122,14 +133,14 @@ export function PlayerTile({
         />
       </div>
 
-      <div className="grid flex-1 grid-cols-[minmax(5.5rem,0.85fr)_1fr_minmax(5.5rem,0.85fr)] items-center gap-3">
+      <div className="grid flex-1 grid-cols-[minmax(7rem,1fr)_1fr_minmax(7rem,1fr)] items-center gap-3">
         <button
           type="button"
           onPointerDown={() => startLifePress(1)}
           onPointerUp={clearHoldTimers}
           onPointerCancel={clearHoldTimers}
           onPointerLeave={clearHoldTimers}
-          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-7xl font-bold leading-none text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18 sm:text-8xl"
+          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-[5rem] font-bold leading-none text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18 sm:text-[6rem]"
           aria-label={`Increase ${player.name} life by 1`}
         >
           +
@@ -161,7 +172,7 @@ export function PlayerTile({
           onPointerUp={clearHoldTimers}
           onPointerCancel={clearHoldTimers}
           onPointerLeave={clearHoldTimers}
-          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-7xl font-bold leading-none text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18 sm:text-8xl"
+          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-[5rem] font-bold leading-none text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18 sm:text-[6rem]"
           aria-label={`Decrease ${player.name} life by 1`}
         >
           -
