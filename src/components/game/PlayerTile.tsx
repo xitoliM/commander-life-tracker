@@ -59,11 +59,11 @@ export function PlayerTile({
         />
       </div>
 
-      <div className="grid flex-1 grid-cols-[minmax(4.25rem,0.7fr)_1fr_minmax(4.25rem,0.7fr)] items-center gap-3">
+      <div className="grid flex-1 grid-cols-[minmax(5.5rem,0.85fr)_1fr_minmax(5.5rem,0.85fr)] items-center gap-3">
         <button
           type="button"
-          onClick={() => onChangeLife(1)}
-          className="flex h-full min-h-24 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-4xl font-semibold text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18"
+          onPointerDown={() => onChangeLife(1)}
+          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-emerald-300/20 bg-emerald-400/10 text-6xl font-semibold leading-none text-emerald-200 transition hover:border-emerald-300/40 hover:bg-emerald-400/18 sm:text-7xl"
           aria-label={`Increase ${player.name} life by 1`}
         >
           +
@@ -91,8 +91,8 @@ export function PlayerTile({
 
         <button
           type="button"
-          onClick={() => onChangeLife(-1)}
-          className="flex h-full min-h-24 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-4xl font-semibold text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18"
+          onPointerDown={() => onChangeLife(-1)}
+          className="touch-manipulation select-none flex h-full min-h-28 items-center justify-center rounded-[1.5rem] border border-rose-300/20 bg-rose-400/10 text-6xl font-semibold leading-none text-rose-200 transition hover:border-rose-300/40 hover:bg-rose-400/18 sm:text-7xl"
           aria-label={`Decrease ${player.name} life by 1`}
         >
           -
