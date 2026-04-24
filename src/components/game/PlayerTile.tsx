@@ -12,6 +12,14 @@ type PlayerTileProps = {
   className?: string;
 };
 
+type TileCounter = {
+  key: string;
+  label: string;
+  symbol: string;
+  value: number;
+  danger?: boolean;
+};
+
 export function PlayerTile({
   player,
   isMonarch,
@@ -26,6 +34,24 @@ export function PlayerTile({
   const flashTimeoutRef = useRef<number | null>(null);
   const [lifeFlash, setLifeFlash] = useState(0);
   const [flashTick, setFlashTick] = useState(0);
+  const visibleCounters: TileCounter[] = [
+    {
+      key: "poison",
+      label: "Poison",
+      symbol: "☠",
+      value: player.poison,
+      danger: player.poison >= 10,
+    },
+    { key: "commanderTax", label: "Commander Tax", symbol: "◈", value: player.commanderTax },
+    { key: "energy", label: "Energy", symbol: "⚡", value: player.energy },
+    { key: "experience", label: "Experience", symbol: "✦", value: player.experience },
+    ...player.extraCounters.map((counter) => ({
+      key: counter.id,
+      label: counter.name,
+      symbol: "•",
+      value: counter.value,
+    })),
+  ].filter((counter) => counter.value > 0);
 
   function clearHoldTimers() {
     if (holdTimeoutRef.current !== null) {
@@ -159,16 +185,37 @@ export function PlayerTile({
           aria-label={`Open actions for ${player.name}`}
         >
           <div className="text-center">
-          <p className="text-[10px] uppercase tracking-[0.38em] text-slate-500">
-            Life
-          </p>
-          <div
-            className={`mt-2 text-7xl font-semibold tracking-tight sm:text-8xl ${
-              player.eliminated ? "text-rose-300" : "text-white"
-            }`}
-          >
-            {player.life}
-          </div>
+            {visibleCounters.length > 0 ? (
+              <div className="mb-2 flex max-w-full flex-wrap items-center justify-center gap-1.5">
+                {visibleCounters.map((counter) => (
+                  <span
+                    key={counter.key}
+                    className={`rounded-full border px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] ${
+                      counter.danger
+                        ? "border-rose-300/40 bg-rose-400/12 text-rose-200"
+                        : "border-white/10 bg-slate-950/45 text-slate-300"
+                    }`}
+                    aria-label={`${counter.label}: ${counter.value}`}
+                    title={`${counter.label}: ${counter.value}`}
+                  >
+                    <span aria-hidden="true">
+                      {counter.symbol} {counter.value}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="mb-2 text-[10px] uppercase tracking-[0.38em] text-slate-500">
+                Life
+              </p>
+            )}
+            <div
+              className={`text-7xl font-semibold tracking-tight sm:text-8xl ${
+                player.eliminated ? "text-rose-300" : "text-white"
+              }`}
+            >
+              {player.life}
+            </div>
           </div>
         </button>
 
