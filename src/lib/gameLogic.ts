@@ -20,6 +20,15 @@ export const PLAYER_COLORS = [
   "#8b5cf6",
 ] as const;
 
+export const PLAYER_COLOR_NAMES: Record<string, string> = {
+  "#f97316": "Orange",
+  "#22c55e": "Green",
+  "#06b6d4": "Cyan",
+  "#eab308": "Yellow",
+  "#ec4899": "Pink",
+  "#8b5cf6": "Purple",
+};
+
 function createId(prefix: string) {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return `${prefix}-${crypto.randomUUID()}`;
@@ -36,13 +45,6 @@ function updateHistory(game: Game, entry: HistoryEntry): Game {
   return {
     ...game,
     history: [...game.history, entry].slice(-MAX_HISTORY),
-  };
-}
-
-function normalizePlayer(player: Player): Player {
-  return {
-    ...player,
-    eliminated: player.eliminated,
   };
 }
 
@@ -76,10 +78,10 @@ function setPlayerValue(
   counterKey: BuiltInCounterKey,
   nextValue: number,
 ): Player {
-  return normalizePlayer({
+  return {
     ...player,
     [counterKey]: clampToZero(nextValue),
-  });
+  };
 }
 
 function replaceCommanderDamage(
@@ -232,6 +234,26 @@ export function addExtraCounter(game: Game, playerId: string, name: string): Gam
         ? {
             ...player,
             extraCounters: [...player.extraCounters, extraCounter],
+          }
+        : player,
+    ),
+  };
+}
+
+export function removeExtraCounter(
+  game: Game,
+  playerId: string,
+  extraCounterId: string,
+): Game {
+  return {
+    ...game,
+    players: game.players.map((player) =>
+      player.id === playerId
+        ? {
+            ...player,
+            extraCounters: player.extraCounters.filter(
+              (counter) => counter.id !== extraCounterId,
+            ),
           }
         : player,
     ),

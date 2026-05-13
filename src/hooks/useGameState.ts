@@ -4,6 +4,7 @@ import {
   addExtraCounter,
   createGame,
   randomizeStartingPlayer,
+  removeExtraCounter,
   setStatusOwner,
   undoLastAction,
   updateCommanderDamage,
@@ -13,7 +14,7 @@ import {
 } from "@/lib/gameLogic";
 import { GAME_STORAGE_KEY } from "@/lib/storage";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import type { CreateGameInput, Game, StatusKey } from "@/types/game";
+import type { BuiltInCounterKey, CreateGameInput, Game, StatusKey } from "@/types/game";
 
 function parseGame(raw: string) {
   try {
@@ -28,53 +29,50 @@ function serializeGame(game: Game | null) {
 }
 
 export function useGameState() {
-  const storage = useLocalStorage<Game | null>(
+  const { value, setValue, clearValue, hydrated } = useLocalStorage<Game | null>(
     GAME_STORAGE_KEY,
     null,
     parseGame,
     serializeGame,
   );
 
-  const hasActiveGame = Boolean(storage.value);
-  const canUndo = Boolean(storage.value?.history.length);
+  const hasActiveGame = Boolean(value);
+  const canUndo = Boolean(value?.history.length);
 
   return useMemo(
     () => ({
-      game: storage.value,
-      hydrated: storage.hydrated,
+      game: value,
+      hydrated,
       hasActiveGame,
       canUndo,
       startGame: (input: CreateGameInput) => {
-        storage.setValue(createGame(input));
+        setValue(createGame(input));
       },
       resetGame: () => {
-        storage.clearValue();
+        clearValue();
       },
       changeLife: (playerId: string, delta: number) => {
-        storage.setValue((current) =>
+        setValue((current) =>
           current ? updateLife(current, playerId, delta) : current,
         );
       },
-      changeCounter: (
-        playerId: string,
-        counterKey: "poison" | "commanderTax" | "energy" | "experience",
-        delta: number,
-      ) => {
-        storage.setValue((current) =>
+      changeCounter: (playerId: string, counterKey: BuiltInCounterKey, delta: number) => {
+        setValue((current) =>
           current ? updateCounter(current, playerId, counterKey, delta) : current,
         );
       },
       addExtraCounter: (playerId: string, name: string) => {
-        storage.setValue((current) =>
+        setValue((current) =>
           current ? addExtraCounter(current, playerId, name) : current,
         );
       },
-      changeExtraCounter: (
-        playerId: string,
-        extraCounterId: string,
-        delta: number,
-      ) => {
-        storage.setValue((current) =>
+      removeExtraCounter: (playerId: string, extraCounterId: string) => {
+        setValue((current) =>
+          current ? removeExtraCounter(current, playerId, extraCounterId) : current,
+        );
+      },
+      changeExtraCounter: (playerId: string, extraCounterId: string, delta: number) => {
+        setValue((current) =>
           current
             ? updateExtraCounter(current, playerId, extraCounterId, delta)
             : current,
@@ -85,28 +83,28 @@ export function useGameState() {
         targetPlayerId: string,
         delta: number,
       ) => {
-        storage.setValue((current) =>
+        setValue((current) =>
           current
             ? updateCommanderDamage(current, sourcePlayerId, targetPlayerId, delta)
             : current,
         );
       },
       setStatusOwner: (statusKey: StatusKey, playerId?: string) => {
-        storage.setValue((current) =>
+        setValue((current) =>
           current ? setStatusOwner(current, statusKey, playerId) : current,
         );
       },
       randomizeStartingPlayer: () => {
-        storage.setValue((current) =>
+        setValue((current) =>
           current ? randomizeStartingPlayer(current) : current,
         );
       },
       undoLastAction: () => {
-        storage.setValue((current) =>
+        setValue((current) =>
           current ? undoLastAction(current) : current,
         );
       },
     }),
-    [canUndo, hasActiveGame, storage],
+    [value, hydrated, setValue, clearValue, hasActiveGame, canUndo],
   );
 }

@@ -152,6 +152,11 @@ export function PlayerTile({
                 Starts
               </span>
             ) : null}
+            {player.eliminated ? (
+              <span className="rounded-full border border-rose-400/40 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-300">
+                Eliminated
+              </span>
+            ) : null}
           </div>
           <h2 className="truncate text-base font-semibold uppercase tracking-[0.18em] text-white/90">
             {player.name}
@@ -190,7 +195,7 @@ export function PlayerTile({
                 {visibleCounters.map((counter) => (
                   <span
                     key={counter.key}
-                    className={`rounded-full border px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.18em] ${
+                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] ${
                       counter.danger
                         ? "border-rose-300/40 bg-rose-400/12 text-rose-200"
                         : "border-white/10 bg-slate-950/45 text-slate-300"

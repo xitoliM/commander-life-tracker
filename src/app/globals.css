@@ -103,6 +103,64 @@ button {
   transform: translate(-50%, -50%);
 }
 
+/* Around-table layout: |=| — side players rotated 90° */
+.board-around-4 {
+  display: grid;
+  grid-template-columns: 22dvw 1fr 22dvw;
+  grid-template-rows: 1fr 1fr;
+  height: calc(100dvh - 1rem);
+  gap: 1rem;
+}
+
+.seat-around-left,
+.seat-around-right {
+  position: relative;
+  overflow: hidden;
+}
+
+.seat-around-left {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.seat-around-right {
+  grid-column: 3;
+  grid-row: 1 / 3;
+}
+
+.seat-around-top {
+  grid-column: 2;
+  grid-row: 1;
+  transform: rotate(180deg);
+}
+
+.seat-around-bottom {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+/* Side tiles: absolute-positioned, rotated so each player reads their tile normally */
+.seat-around-left .player-tile,
+.seat-around-right .player-tile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Before rotation: width = board height (becomes visual height), height = column width (becomes visual width) */
+  width: calc(100dvh - 1rem);
+  height: 22dvw;
+  min-height: 0;
+}
+
+/* Left player (sits on west side, looks east): CCW rotation */
+.seat-around-left .player-tile {
+  transform: translate(-50%, -50%) rotate(-90deg);
+}
+
+/* Right player (sits on east side, looks west): CW rotation */
+.seat-around-right .player-tile {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
 @media (orientation: portrait) and (max-width: 1024px) {
   .portrait-blocker {
     position: fixed;

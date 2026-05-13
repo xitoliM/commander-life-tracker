@@ -16,6 +16,7 @@ type PlayerDetailModalProps = {
   ) => void;
   onAddExtraCounter: (name: string) => void;
   onChangeExtraCounter: (extraCounterId: string, delta: number) => void;
+  onRemoveExtraCounter: (extraCounterId: string) => void;
   onChangeCommanderDamage: (
     sourcePlayerId: string,
     targetPlayerId: string,
@@ -34,6 +35,7 @@ export function PlayerDetailModal({
   onChangeCounter,
   onAddExtraCounter,
   onChangeExtraCounter,
+  onRemoveExtraCounter,
   onChangeCommanderDamage,
 }: PlayerDetailModalProps) {
   const sources = game.players.filter((entry) => entry.id !== player.id);
@@ -136,6 +138,7 @@ export function PlayerDetailModal({
             onChangeCounter={onChangeCounter}
             onAddExtraCounter={onAddExtraCounter}
             onChangeExtraCounter={onChangeExtraCounter}
+            onRemoveExtraCounter={onRemoveExtraCounter}
           />
         </section>
       </div>

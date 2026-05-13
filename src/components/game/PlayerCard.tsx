@@ -9,12 +9,10 @@ type PlayerCardProps = {
   isInitiative: boolean;
   isStartingPlayer: boolean;
   onChangeLife: (delta: number) => void;
-  onChangeCounter: (
-    counterKey: "poison" | "commanderTax" | "energy" | "experience",
-    delta: number,
-  ) => void;
+  onChangeCounter: (counterKey: "poison" | "commanderTax" | "energy" | "experience", delta: number) => void;
   onAddExtraCounter: (name: string) => void;
   onChangeExtraCounter: (extraCounterId: string, delta: number) => void;
+  onRemoveExtraCounter: (extraCounterId: string) => void;
   onOpenCommanderDamage: () => void;
 };
 
@@ -28,6 +26,7 @@ export function PlayerCard({
   onChangeCounter,
   onAddExtraCounter,
   onChangeExtraCounter,
+  onRemoveExtraCounter,
   onOpenCommanderDamage,
 }: PlayerCardProps) {
   return (
@@ -115,6 +114,7 @@ export function PlayerCard({
           onChangeCounter={onChangeCounter}
           onAddExtraCounter={onAddExtraCounter}
           onChangeExtraCounter={onChangeExtraCounter}
+          onRemoveExtraCounter={onRemoveExtraCounter}
         />
       </div>
     </article>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { PLAYER_COLORS } from "@/lib/gameLogic";
+import { PLAYER_COLOR_NAMES, PLAYER_COLORS } from "@/lib/gameLogic";
 import type { CreateGameInput, PlayerSetup } from "@/types/game";
 
 type PlayerSetupFormProps = {
@@ -8,10 +8,13 @@ type PlayerSetupFormProps = {
   onCancel: () => void;
 };
 
-function createDefaultPlayers(count: number): PlayerSetup[] {
+type PlayerSetupEntry = PlayerSetup & { id: string };
+
+function createDefaultPlayers(count: number): PlayerSetupEntry[] {
   return Array.from({ length: count }, (_, index) => ({
+    id: crypto.randomUUID(),
     name: `Player ${index + 1}`,
-    color: PLAYER_COLORS[index % PLAYER_COLORS.length],
+    color: PLAYER_COLORS[index % PLAYER_COLORS.length] as string,
   }));
 }
 
@@ -19,7 +22,7 @@ export function PlayerSetupForm({ onStart, onCancel }: PlayerSetupFormProps) {
   const [playerCount, setPlayerCount] = useState(4);
   const [startingLife, setStartingLife] = useState(40);
   const [randomizeStartingPlayer, setRandomizeStartingPlayer] = useState(true);
-  const [players, setPlayers] = useState<PlayerSetup[]>(createDefaultPlayers(4));
+  const [players, setPlayers] = useState<PlayerSetupEntry[]>(createDefaultPlayers(4));
 
   useEffect(() => {
     setPlayers((current) => {
@@ -27,8 +30,9 @@ export function PlayerSetupForm({ onStart, onCancel }: PlayerSetupFormProps) {
 
       while (next.length < playerCount) {
         next.push({
+          id: crypto.randomUUID(),
           name: `Player ${next.length + 1}`,
-          color: PLAYER_COLORS[next.length % PLAYER_COLORS.length],
+          color: PLAYER_COLORS[next.length % PLAYER_COLORS.length] as string,
         });
       }
 
@@ -87,7 +91,7 @@ export function PlayerSetupForm({ onStart, onCancel }: PlayerSetupFormProps) {
       <div className="mb-6 space-y-3">
         {players.map((player, index) => (
           <div
-            key={index}
+            key={player.id}
             className="grid gap-3 rounded-[1.5rem] border border-white/8 bg-slate-950/40 p-4 sm:grid-cols-[1fr_180px]"
           >
             <label>
@@ -129,7 +133,7 @@ export function PlayerSetupForm({ onStart, onCancel }: PlayerSetupFormProps) {
                 >
                   {PLAYER_COLORS.map((color) => (
                     <option key={color} value={color}>
-                      {color}
+                      {PLAYER_COLOR_NAMES[color] ?? color}
                     </option>
                   ))}
                 </select>

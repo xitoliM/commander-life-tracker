@@ -7,20 +7,14 @@ import { PlayerTile } from "@/components/game/PlayerTile";
 import { Modal } from "@/components/layout/Modal";
 import { PlayerSetupForm } from "@/components/setup/PlayerSetupForm";
 import { useGameState } from "@/hooks/useGameState";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import type { Player } from "@/types/game";
+
+type BoardLayout = "default" | "around";
 
 function getBoardLayout(playerCount: number) {
-  if (playerCount <= 2) {
-    return "grid-cols-1 sm:grid-cols-2";
-  }
-
-  if (playerCount === 4) {
-    return "grid-cols-2";
-  }
-
-  if (playerCount <= 4) {
-    return "grid-cols-2";
-  }
-
+  if (playerCount <= 2) return "grid-cols-1 sm:grid-cols-2";
+  if (playerCount <= 4) return "grid-cols-2";
   return "grid-cols-2 2xl:grid-cols-3";
 }
 
@@ -39,16 +33,37 @@ export default function HomePage() {
   const [showSetup, setShowSetup] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
-
-  const selectedPlayerIndex = tracker.game?.players.findIndex(
-    (player) => player.id === selectedPlayerId,
+  const { value: boardLayout, setValue: setBoardLayout } = useLocalStorage<BoardLayout>(
+    "commander-life-tracker.layout",
+    "default",
+    (raw) => (raw === "around" ? "around" : "default"),
+    (val) => val,
   );
+
+  const players = tracker.game?.players ?? [];
+  const isAroundLayout = boardLayout === "around" && players.length === 4;
+
+  const selectedPlayerIndex = players.findIndex((p) => p.id === selectedPlayerId);
 
   const selectedPlayer = useMemo(
-    () =>
-      tracker.game?.players.find((player) => player.id === selectedPlayerId) ?? null,
-    [selectedPlayerId, tracker.game?.players],
+    () => players.find((p) => p.id === selectedPlayerId) ?? null,
+    [selectedPlayerId, players],
   );
+
+  const upsideDown = isAroundLayout
+    ? selectedPlayerId === players[1]?.id
+    : players.length === 4 && selectedPlayerIndex < 2;
+
+  function makeTileProps(player: Player) {
+    return {
+      player,
+      isMonarch: tracker.game?.monarchPlayerId === player.id,
+      isInitiative: tracker.game?.initiativePlayerId === player.id,
+      isStartingPlayer: tracker.game?.startingPlayerId === player.id,
+      onChangeLife: (delta: number) => tracker.changeLife(player.id, delta),
+      onOpen: () => setSelectedPlayerId(player.id),
+    };
+  }
 
   if (!tracker.hydrated) {
     return (
@@ -115,34 +130,38 @@ export default function HomePage() {
 
           {tracker.game && !showSetup ? (
             <div className="relative">
-              <section
-                className={`grid auto-rows-fr gap-4 ${getBoardLayout(
-                  tracker.game.players.length,
-                )} ${
-                  tracker.game.players.length === 4 ? "board-grid-4" : ""
-                } board-surface min-h-[calc(100dvh-1rem)]`}
-              >
-                {tracker.game.players.map((player, index) => {
-                  return (
+              {isAroundLayout ? (
+                <section className="board-around-4 board-surface">
+                  <div className="seat-around-left">
+                    <PlayerTile key={players[2]!.id} {...makeTileProps(players[2]!)} />
+                  </div>
+                  <PlayerTile key={players[1]!.id} className="seat-around-top" {...makeTileProps(players[1]!)} />
+                  <PlayerTile key={players[0]!.id} className="seat-around-bottom" {...makeTileProps(players[0]!)} />
+                  <div className="seat-around-right">
+                    <PlayerTile key={players[3]!.id} {...makeTileProps(players[3]!)} />
+                  </div>
+                </section>
+              ) : (
+                <section
+                  className={`grid auto-rows-fr gap-4 ${getBoardLayout(players.length)} ${
+                    players.length === 4 ? "board-grid-4" : ""
+                  } board-surface min-h-[calc(100dvh-1rem)]`}
+                >
+                  {players.map((player, index) => (
                     <PlayerTile
                       key={player.id}
-                      className={getSeatClass(tracker.game!.players.length, index)}
-                      player={player}
-                      isMonarch={tracker.game?.monarchPlayerId === player.id}
-                      isInitiative={tracker.game?.initiativePlayerId === player.id}
-                      isStartingPlayer={tracker.game?.startingPlayerId === player.id}
-                      onChangeLife={(delta) => tracker.changeLife(player.id, delta)}
-                      onOpen={() => setSelectedPlayerId(player.id)}
+                      className={getSeatClass(players.length, index)}
+                      {...makeTileProps(player)}
                     />
-                  );
-                })}
-              </section>
+                  ))}
+                </section>
+              )}
 
               <button
                 type="button"
                 onClick={() => setShowMenu(true)}
                 className={`game-menu-button rounded-full border border-white/12 bg-slate-900/92 px-5 py-4 text-sm font-semibold uppercase tracking-[0.26em] text-white shadow-2xl shadow-slate-950/60 transition hover:border-cyan-300/40 hover:text-cyan-100 ${
-                  tracker.game.players.length === 4 ? "game-menu-button-center" : ""
+                  players.length === 4 ? "game-menu-button-center" : ""
                 }`}
               >
                 Menu
@@ -155,7 +174,7 @@ export default function HomePage() {
           <PlayerDetailModal
             game={tracker.game}
             player={selectedPlayer}
-            upsideDown={tracker.game.players.length === 4 && (selectedPlayerIndex ?? -1) < 2}
+            upsideDown={upsideDown}
             onClose={() => setSelectedPlayerId(null)}
             onChangeLife={(delta) => tracker.changeLife(selectedPlayer.id, delta)}
             onChangeCounter={(counterKey, delta) =>
@@ -164,6 +183,9 @@ export default function HomePage() {
             onAddExtraCounter={(name) => tracker.addExtraCounter(selectedPlayer.id, name)}
             onChangeExtraCounter={(extraCounterId, delta) =>
               tracker.changeExtraCounter(selectedPlayer.id, extraCounterId, delta)
+            }
+            onRemoveExtraCounter={(extraCounterId) =>
+              tracker.removeExtraCounter(selectedPlayer.id, extraCounterId)
             }
             onChangeCommanderDamage={tracker.changeCommanderDamage}
           />
@@ -183,6 +205,24 @@ export default function HomePage() {
               >
                 Undo last action
               </button>
+
+              {players.length === 4 ? (
+                <button
+                  type="button"
+                  onClick={() => setBoardLayout(boardLayout === "around" ? "default" : "around")}
+                  className="min-h-14 rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-left text-base font-semibold text-white transition hover:border-cyan-300/40"
+                >
+                  <span className="block text-base font-semibold text-white">
+                    {boardLayout === "around" ? "Switch to default layout" : "Switch to around-table layout"}
+                  </span>
+                  <span className="mt-0.5 block text-sm font-normal text-slate-400">
+                    {boardLayout === "around"
+                      ? "2×2 grid — top players face inward"
+                      : "|=| layout — side players rotated 90°"}
+                  </span>
+                </button>
+              ) : null}
+
               <button
                 type="button"
                 onClick={() => {
